@@ -8,14 +8,14 @@
     <key>ProgramArguments</key>
     <array>
         <string>/bin/bash</string>
-        <string>SCRIPT_PATH_PLACEHOLDER</string>
+        <string>/usr/local/warp-refresh/warp-refresh.sh</string>
     </array>
     
     <key>StartInterval</key>
     <integer>3600</integer>
     
     <key>RunAtLoad</key>
-    <true/>
+    <false/>
     
     <key>KeepAlive</key>
     <false/>
@@ -27,6 +27,6 @@
     <string>/tmp/warp-refresh.err</string>
     
     <key>WorkingDirectory</key>
-    <string>WORKING_DIR_PLACEHOLDER</string>
+    <string>/usr/local/warp-refresh</string>
 </dict>
 </plist>

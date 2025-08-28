@@ -25,25 +25,24 @@ This script helps prevent interruptions during video calls or unexpected TLS cer
 
 1. **Download the files**:
    ```bash
-   # Create a directory for the script
-   mkdir -p ~/Documents/warp-refresh
-   cd ~/Documents/warp-refresh
-   
-   # Download the script
-   curl -O https://raw.githubusercontent.com/aipracticegovsg/warp-refresh-macos/main/warp-refresh.sh
-   
-   # Make it executable
-   chmod +x warp-refresh.sh
+   # Download the script and plist files
+   curl -O https://raw.githubusercontent.com/YOUR_USERNAME/warp-refresh-mac/main/warp-refresh.sh
+   curl -O https://raw.githubusercontent.com/YOUR_USERNAME/warp-refresh-mac/main/com.warp.refresh.plist
    ```
 
-2. **Set up the scheduled task**:
+2. **Install the script**:
    ```bash
-   # Download the plist template
-   curl -O https://raw.githubusercontent.com/aipracticegovsg/warp-refresh-macos/main/com.warp.refresh.plist
-   
+   # Create directory and install script
+   sudo mkdir -p /usr/local/warp-refresh
+   sudo cp warp-refresh.sh /usr/local/warp-refresh/
+   sudo chmod +x /usr/local/warp-refresh/warp-refresh.sh
+   ```
+
+3. **Set up the scheduled task**:
+   ```bash
    # Update the plist with correct paths
-   sed -i '' "s|SCRIPT_PATH_PLACEHOLDER|$HOME/Documents/warp-refresh/warp-refresh.sh|g" com.warp.refresh.plist
-   sed -i '' "s|WORKING_DIR_PLACEHOLDER|$HOME/Documents/warp-refresh|g" com.warp.refresh.plist
+   sed -i '' "s|SCRIPT_PATH_PLACEHOLDER|/usr/local/warp-refresh/warp-refresh.sh|g" com.warp.refresh.plist
+   sed -i '' "s|WORKING_DIR_PLACEHOLDER|/usr/local/warp-refresh|g" com.warp.refresh.plist
    
    # Copy to LaunchAgents directory
    cp com.warp.refresh.plist ~/Library/LaunchAgents/
@@ -56,24 +55,23 @@ This script helps prevent interruptions during video calls or unexpected TLS cer
 
 1. **Create the script directory**:
    ```bash
-   mkdir -p ~/Documents/warp-refresh
-   cd ~/Documents/warp-refresh
+   sudo mkdir -p /usr/local/warp-refresh
    ```
 
 2. **Create the script file** (`warp-refresh.sh`):
-   Copy the contents from `warp-refresh.sh` in this repository and save it to `~/Documents/warp-refresh/warp-refresh.sh`
+   Copy the contents from `warp-refresh.sh` in this repository and save it to `/usr/local/warp-refresh/warp-refresh.sh`
 
 3. **Make the script executable**:
    ```bash
-   chmod +x ~/Documents/warp-refresh/warp-refresh.sh
+   sudo chmod +x /usr/local/warp-refresh/warp-refresh.sh
    ```
 
 4. **Create the plist file**:
    Copy the contents from `com.warp.refresh.plist` and save it as `~/Library/LaunchAgents/com.warp.refresh.plist`
    
    **Important**: Replace the placeholders in the plist file:
-   - Replace `SCRIPT_PATH_PLACEHOLDER` with the full path to your script (e.g., `/Users/yourusername/Documents/warp-refresh/warp-refresh.sh`)
-   - Replace `WORKING_DIR_PLACEHOLDER` with the directory containing the script (e.g., `/Users/yourusername/Documents/warp-refresh`)
+   - Replace `SCRIPT_PATH_PLACEHOLDER` with `/usr/local/warp-refresh/warp-refresh.sh`
+   - Replace `WORKING_DIR_PLACEHOLDER` with `/usr/local/warp-refresh`
 
 5. **Load the scheduled task**:
    ```bash
@@ -99,14 +97,13 @@ launchctl list | grep com.warp.refresh
 
 ### Running the script manually (for testing)
 ```bash
-cd ~/Documents/warp-refresh
-./warp-refresh.sh
+/usr/local/warp-refresh/warp-refresh.sh
 ```
 
 ### Viewing logs
-The script creates a log file in the same directory:
+The script creates a log file in `/tmp`:
 ```bash
-tail -f ~/Documents/warp-refresh/warp-refresh.log
+tail -f /tmp/warp-refresh.log
 ```
 
 ## Configuration
@@ -151,9 +148,8 @@ launchctl list | grep com.warp.refresh
 
 ### Test the script manually
 ```bash
-cd ~/Documents/warp-refresh
-./warp-refresh.sh
-cat warp-refresh.log
+/usr/local/warp-refresh/warp-refresh.sh
+cat /tmp/warp-refresh.log
 ```
 
 ## Uninstallation
@@ -168,7 +164,7 @@ launchctl unload ~/Library/LaunchAgents/com.warp.refresh.plist
 rm ~/Library/LaunchAgents/com.warp.refresh.plist
 
 # Optionally remove the script directory
-rm -rf ~/Documents/warp-refresh
+sudo rm -rf /usr/local/warp-refresh
 ```
 
 ## How it works
