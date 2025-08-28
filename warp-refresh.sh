@@ -10,7 +10,7 @@
 # Get the directory where this script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}" .sh)"
-LOG_FILE="${SCRIPT_DIR}/${SCRIPT_NAME}.log"
+LOG_FILE="/tmp/${SCRIPT_NAME}.log"
 MAX_LOG_LINES=100
 
 # Function to write to log file with timestamp
