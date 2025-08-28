@@ -30,7 +30,7 @@ This script helps prevent interruptions during video calls or unexpected TLS cer
    cd ~/Documents/warp-refresh
    
    # Download the script
-   curl -O https://raw.githubusercontent.com/YOUR_USERNAME/warp-refresh-mac/main/warp-refresh.sh
+   curl -O https://raw.githubusercontent.com/aipracticegovsg/warp-refresh-macos/main/warp-refresh.sh
    
    # Make it executable
    chmod +x warp-refresh.sh
@@ -39,7 +39,7 @@ This script helps prevent interruptions during video calls or unexpected TLS cer
 2. **Set up the scheduled task**:
    ```bash
    # Download the plist template
-   curl -O https://raw.githubusercontent.com/YOUR_USERNAME/warp-refresh-mac/main/com.warp.refresh.plist
+   curl -O https://raw.githubusercontent.com/aipracticegovsg/warp-refresh-macos/main/com.warp.refresh.plist
    
    # Update the plist with correct paths
    sed -i '' "s|SCRIPT_PATH_PLACEHOLDER|$HOME/Documents/warp-refresh/warp-refresh.sh|g" com.warp.refresh.plist
