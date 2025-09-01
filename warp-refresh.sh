@@ -13,40 +13,81 @@ SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}" .sh)"
 LOG_FILE="/tmp/${SCRIPT_NAME}.log"
 MAX_LOG_LINES=100
 
+# Use full path to warp-cli to avoid PATH issues with launchd
+WARP_CLI="/usr/local/bin/warp-cli"
+
 # Function to write to log file with timestamp
 write_to_log() {
     local message="$1"
     echo "$(date '+%Y-%m-%d %H:%M:%S'): $message" >> "$LOG_FILE"
 }
 
+# Function to check if warp-cli is available
+check_warp_cli() {
+    if [[ ! -x "$WARP_CLI" ]]; then
+        write_to_log "ERROR: warp-cli not found at $WARP_CLI. Is Cloudflare WARP installed?"
+        return 1
+    fi
+    return 0
+}
+
 # Function to check if WARP is disconnected
 is_disconnected() {
     local status_output
-    status_output=$(warp-cli status 2>/dev/null)
+    local retry_count=0
+    local max_retries=3
     
-    if [[ $? -ne 0 ]]; then
-        write_to_log "ERROR: warp-cli command failed. Is Cloudflare WARP installed?"
+    # Check if warp-cli exists first
+    if ! check_warp_cli; then
         return 2
     fi
     
-    # Extract status from the first line after "Status update: "
-    local status
-    status=$(echo "$status_output" | head -n1 | cut -d':' -f2 | xargs)
-    
-    if [[ "$status" == "Disconnected" ]]; then
-        return 0  # true - is disconnected
-    else
-        return 1  # false - is connected or other state
-    fi
+    # Retry logic for warp-cli status command
+    while [[ $retry_count -lt $max_retries ]]; do
+        status_output=$("$WARP_CLI" status 2>/dev/null)
+        local exit_code=$?
+        
+        if [[ $exit_code -eq 0 ]]; then
+            # Extract status from the first line after "Status update: "
+            local status
+            status=$(echo "$status_output" | head -n1 | cut -d':' -f2 | xargs)
+            
+            if [[ "$status" == "Disconnected" ]]; then
+                return 0  # true - is disconnected
+            else
+                return 1  # false - is connected or other state
+            fi
+        else
+            retry_count=$((retry_count + 1))
+            if [[ $retry_count -lt $max_retries ]]; then
+                write_to_log "WARNING: warp-cli status failed (attempt $retry_count/$max_retries), retrying in 2 seconds..."
+                sleep 2
+            else
+                write_to_log "ERROR: warp-cli status failed after $max_retries attempts. WARP service may be temporarily unavailable."
+                return 2
+            fi
+        fi
+    done
 }
 
 # Function to connect and immediately disconnect WARP
 connect_and_disconnect() {
     write_to_log "Executing warp-cli connect..."
-    warp-cli connect >/dev/null 2>&1
+    if "$WARP_CLI" connect >/dev/null 2>&1; then
+        write_to_log "Connect command successful"
+    else
+        write_to_log "WARNING: Connect command failed, but continuing with disconnect"
+    fi
+    
+    # Small delay to ensure connect command is processed
+    sleep 1
     
     write_to_log "Executing warp-cli disconnect..."
-    warp-cli disconnect >/dev/null 2>&1
+    if "$WARP_CLI" disconnect >/dev/null 2>&1; then
+        write_to_log "Disconnect command successful"
+    else
+        write_to_log "WARNING: Disconnect command failed"
+    fi
 }
 
 # Function to trim log file to keep only the last MAX_LOG_LINES
@@ -67,6 +108,8 @@ trim_log_file() {
 
 # Main execution
 main() {
+    write_to_log "Script started"
+    
     # Check if WARP is disconnected
     if is_disconnected; then
         write_to_log "WARP is currently disconnected, will perform connect-disconnect to refresh timeout..."
@@ -76,6 +119,7 @@ main() {
         local exit_code=$?
         if [[ $exit_code -eq 2 ]]; then
             # Error already logged in is_disconnected function
+            write_to_log "Script exiting due to warp-cli availability issues"
             exit 1
         else
             write_to_log "WARP does not seem to be in disconnected state, not performing any action"
@@ -84,6 +128,8 @@ main() {
     
     # Trim log file to prevent it from growing too large
     trim_log_file
+    
+    write_to_log "Script completed"
 }
 
 # Run main function
